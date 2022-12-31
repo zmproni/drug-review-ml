@@ -19,3 +19,25 @@ drugs_review <- read.csv(
   header = TRUE
 )
 
+cleaned <- drugs_review
+
+# Convert date (string) to date object
+cleaned$date <- as.Date(cleaned$date, format = "%B %d, %Y")
+
+# Null values
+cleaned <- drugs_review[drugs_review$condition != "", ]
+
+# Span values
+cleaned <- drugs_review[!str_detect(drugs_review$condition, "span>"), ]
+
+# Special character errors (html code)
+cleaned$review <- str_replace_all(cleaned$review, "&#039;", "'")
+cleaned$review <- str_replace_all(cleaned$review, "\"", "")
+cleaned$review <- str_replace_all(cleaned$review, "&amp;", "&")
+cleaned$review <- str_replace_all(cleaned$review, "&quot;", '"')
+cleaned$review <- str_replace_all(cleaned$review, "&nbsp;", " ")
+cleaned$review <- str_replace_all(cleaned$review, "&euro;", "$")
+cleaned$review <- str_replace_all(cleaned$review, "&bull;", "")
+
+# Write the cleaned data to a csv file
+write.csv(cleaned, file = "cleaned.csv")
