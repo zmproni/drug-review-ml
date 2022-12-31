@@ -41,7 +41,7 @@ cleaned$review <- str_replace_all(cleaned$review, "&nbsp;", " ")
 cleaned$review <- str_replace_all(cleaned$review, "&euro;", "$")
 cleaned$review <- str_replace_all(cleaned$review, "&bull;", "")
 
-# Make sure data is clean 
+# Make sure data is clean
 # (no null values, no span values, no special character errors)
 # check for html character codes
 
@@ -66,4 +66,8 @@ dim(cleaned[str_detect(cleaned$condition, "span>"), ])
 View(cleaned)
 
 # Write the cleaned data to a csv file without row names
-write.csv(cleaned, file = "processed/cleaned.csv", row.names = FALSE)
+write.csv(
+  cleaned,
+  file = "processed/drug_review_cleaned.csv",
+  row.names = FALSE
+)
