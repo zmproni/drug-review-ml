@@ -26,6 +26,9 @@ drugs_review <- read.csv(
 
 # Preliminary data exploration
 
+# Print columns in dataset
+colnames(drugs_review[1,1:6])
+
 # View the first 10 rows of the data
 drugs_review[1:10, ]
 
@@ -66,6 +69,14 @@ length(drugs_review[
   drugs_review$drugName == popular_drug,
 ]$drugName)
 # Missing values don't seem to be related to the drug name
+
+
+
+# Span tags in condition column
+length(drugs_review[str_detect(drugs_review$condition, "span>"), ]$review)
+# 271 Incorrectly entered review values
+# Only 1.05% of the data, insignificant difference
+# Suggested the rows are dropped
 
 
 
