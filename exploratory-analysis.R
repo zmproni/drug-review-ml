@@ -22,12 +22,13 @@ drugs_review <- read.csv(
   header = TRUE
 )
 
-
-
 # Preliminary data exploration
 
 # Print columns in dataset
-colnames(drugs_review[1,1:6])
+colnames(drugs_review)
+
+# Drop column named X
+drugs_review <- drugs_review[, -1]
 
 # View the first 10 rows of the data
 drugs_review[1:10, ]
