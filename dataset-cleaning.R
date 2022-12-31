@@ -8,6 +8,7 @@ library(dotenv)
 library(stringr)
 library(tidyr)
 
+# Might remove later
 load_dot_env(file = ".env")
 working_dir <- Sys.getenv("WORKING_DIR")
 setwd(working_dir)
@@ -19,16 +20,17 @@ drugs_review <- read.csv(
   header = TRUE
 )
 
-cleaned <- drugs_review
+# Drop column named X
+cleaned <- drugs_review[, -1]
 
 # Convert date (string) to date object
 cleaned$date <- as.Date(cleaned$date, format = "%B %d, %Y")
 
 # Null values
-cleaned <- drugs_review[drugs_review$condition != "", ]
+cleaned <- cleaned[cleaned$condition != "", ]
 
 # Span values
-cleaned <- drugs_review[!str_detect(drugs_review$condition, "span>"), ]
+cleaned <- cleaned[!str_detect(cleaned$condition, "span>"), ]
 
 # Special character errors (html code)
 cleaned$review <- str_replace_all(cleaned$review, "&#039;", "'")
@@ -39,5 +41,29 @@ cleaned$review <- str_replace_all(cleaned$review, "&nbsp;", " ")
 cleaned$review <- str_replace_all(cleaned$review, "&euro;", "$")
 cleaned$review <- str_replace_all(cleaned$review, "&bull;", "")
 
-# Write the cleaned data to a csv file
-write.csv(cleaned, file = "cleaned.csv")
+# Make sure data is clean 
+# (no null values, no span values, no special character errors)
+# check for html character codes
+
+# Function to check for html character codes
+check_html <- function(text) {
+  expression <- "(&.{4};)"
+  matches <- str_extract_all(text, expression)
+  return(matches)
+}
+
+# Check for html character codes
+unique(unlist(check_html(cleaned$review)))
+
+# Check for null values
+lapply(cleaned, function(x) {
+  sum(x == "")
+})
+
+# Check for span values
+dim(cleaned[str_detect(cleaned$condition, "span>"), ])
+
+View(cleaned)
+
+# Write the cleaned data to a csv file without row names
+write.csv(cleaned, file = "processed/cleaned.csv", row.names = FALSE)
