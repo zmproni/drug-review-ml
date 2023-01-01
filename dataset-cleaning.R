@@ -8,11 +8,6 @@ library(dotenv)
 library(stringr)
 library(tidyr)
 
-# Might remove later
-load_dot_env(file = ".env")
-working_dir <- Sys.getenv("WORKING_DIR")
-setwd(working_dir)
-
 # Read in the data
 drugs_review <- read.csv(
   "./dataset/drugs_review.csv",
