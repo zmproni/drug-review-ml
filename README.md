@@ -19,7 +19,7 @@ Get this by running text-preprocessing.rmd
 2. ```exploratory-analysis.R```
 3. ```dataset-cleaning.R```  
 4. ```texpt-preprocessing.rmd```
-5. ```text_clustering.Rmd```
+5. ```text_clustering.rmd```
 
 ## File descriptions 
 ```dependencies.R```  
