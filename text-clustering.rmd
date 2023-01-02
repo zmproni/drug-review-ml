@@ -74,6 +74,14 @@ freq <- freq[1:25]
 barplot(freq, las = 2, col = rainbow(25), main = "Top 25 Frequent Terms", xlab = "Term", ylab = "Frequency")
 ```
 
+## Reduce the dimensionality of sparse_matrix
+* Remove terms that occur less than 10 times
+```{r}
+# Filter out terms that occur less than 10 times
+sparse_matrix <- sparse_matrix[rowSums(sparse_matrix) >= 10, ]
+```
+
+
 ## Hierarchical Clustering
 Clustering using dendrogram
 ```{r}
