@@ -1,0 +1,61 @@
+---
+title: "Sentiment Analysis - Exploration"
+---
+
+# Sentiment Analysis
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+A comparison in rating prediction accuracy based on Lexicon based sentiment analysis.
+The following sentiment analysis methodolgies are used: 
+* AFINN
+* bing
+* nrc
+* VADER
+
+## How do lexicon based sentiment analysis work?
+The key to understanding how lexicon based sentiment analysis (SA) works is in the word lexicon.
+A lexicon refers to a dictionary of words and their definition, in the context of SA 
+it is a dictionary of words and their sentiment. Various SA methods explain the sentiment's polarity 
+in different ways, a count of positive and negative words, a number that represents how positive or
+negative a word is, or a combination of both. 
+
+```{r}  
+library(tidyverse)
+library(vader)
+```
+
+```{r}  
+# Load the data
+drug_review <- read.csv("processed/drug_review_cleaned.csv")
+```
+
+## Vader Sentiment Analysis
+Valence Aware Dictionary and sEntiment Reasoner (VADER)
+Created by C.J. Hutto and Eric Gilbert at the University of Alabama at Birmingham. VADER 
+is a lexicon and rule-based sentiment analysis tool that is specifically attuned to sentiments 
+expressed in social media. It is fully open-sourced under the MIT License. 
+
+```{r}
+sample_review <- drug_review$review[5]
+sample_score <- drug_review$rating[5]
+sprintf("% s | % s", sample_score, sample_review)
+```
+
+The get_vader calculates the valence of the text passed to it. The valence is a number between -1 and 1.
+The closer the number is to 1, the more positive the text is. The closer the number is to -1, the more negative the text is.
+The arguments of the function are:
+* text: the text to be analyzed
+* incl_nt: whether to include rare negation words in the analysis 
+* neu_set: whether neutral words count to the calculation 
+* rm_qm : whether to remove quotation marks from the text
+```{r}
+result <- get_vader(sample_review, incl_nt = FALSE, neu_set = TRUE, rm_qm = TRUE)
+print(result[-1])
+```
+
+```{r}
+
+```
