@@ -47,6 +47,8 @@ check_html <- function(text) {
   return(matches)
 }
 
+# TODO: check for unicode characters (e.g. <U+2764>)
+
 # Check for html character codes
 unique(unlist(check_html(cleaned$review)))
 

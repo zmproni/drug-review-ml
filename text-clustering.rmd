@@ -6,17 +6,12 @@ title: "Review Text Clustering with R"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, include=FALSE}
-install.packages("tm", repos = "http://cran.us.r-project.org")
-install.packages("Matrix", repos = "http://cran.us.r-project.org")
-install.packages("plyr", repos = "http://cran.us.r-project.org")
-```
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tm)
 library(Matrix)
 library(plyr)
+library(stats)
 ```
 
 ## Load Data
@@ -68,16 +63,32 @@ sparse_matrix <- sparseMatrix(
 ## Plot Frequent Terms
 ```{r}
 freq <- rowSums(sparse_matrix)
+# Remove terms that occur less than 50 times
+freq <- subset(freq, freq >= 50)
+# Sort terms by frequency
+freq <- freq[order(freq, decreasing = TRUE)]
+# Get top 25 terms
+freq <- freq[1:25]
+
+# Barplot of frequent terms
+barplot(freq, las = 2, col = rainbow(25), main = "Top 25 Frequent Terms", xlab = "Term", ylab = "Frequency")
 ```
 
 ## Hierarchical Clustering
 Clustering using dendrogram
 ```{r}
-
+distance <- dist(scale(sparse_matrix))
+hc <- hclust(distance, method = "ward.D2") # D or D2
+plot(hc, hang=-1)
+rect.hclust(hc, k = 3)
 ```
 
 ## Non-Hierarchical Clustering
 Clustering using k-means
 ```{r}
+t_sparse <- t(sparse_matrix)
+set.seed(0)
+k <- 3
+kmeans_model <- kmeans(t_sparse, k)
 
 ```
