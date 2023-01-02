@@ -1,8 +1,4 @@
 # 1st Step of the project: Preliminary data exploration
-
-install.packages("tidyverse")
-install.packages("markdown")
-
 library(tidyverse)
 library(plyr)
 library(ggplot2)
