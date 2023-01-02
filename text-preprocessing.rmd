@@ -1,0 +1,82 @@
+---
+title: "Review Text Preprocessing R"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(tm)
+library(Matrix)
+library(plyr)
+library(stats)
+library(ggpubr)
+library(factoextra)
+```
+
+## Load Data
+
+```{r}
+drugs_review <- read_csv("processed/drug_review_cleaned.csv")
+dim(drugs_review)
+```
+
+## Build corpus
+* A corpus is a collection of documents. In this case, each document is a review text. We will use the tm package to build a corpus from the review text.
+```{r}
+corpus <- VCorpus(VectorSource(drugs_review$review))
+```
+
+## Preprocessing on corpus
+* **Converting to lower case**:  
+Converting all words to lower case is a common preprocessing step that can help to reduce the dimensionality of the data.
+* **Removing numbers**:  
+Numbers are typically not very informative, so removing them can help to reduce the dimensionality of the data.
+* **Removing punctuation marks**:  
+Punctuation marks are typically not very informative, so removing them can help to reduce the dimensionality of the data.
+* **Removing stop words**:  
+Stop words are common words that are typically not very informative, such as "the," "a," and "an." Removing stop words can help to reduce the dimensionality of the data and focus on more meaningful words.
+* **Stemming**:  
+Stemming is the process of reducing words to their root form. For example, the words "running," "ran," and "run" would all be reduced to the root word "run." Stemming can help to reduce the dimensionality of the data and focus on more meaningful words.
+```{r}
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+corpus <- tm_map(corpus, stemDocument)
+```
+
+
+## Term Document Matrix
+* A term-document matrix is a matrix where each row represents a term and each column represents a document. The value in each cell represents the frequency of the term in the document.
+```{r}
+tdm <- TermDocumentMatrix(corpus)
+sparse_matrix <- sparseMatrix(
+    i = tdm$i,
+    j = tdm$j,
+    x = tdm$v,
+    dims = dim(tdm),
+    dimnames = dimnames(tdm)
+)
+```
+
+## Plot Frequent Terms
+```{r}
+freq <- rowSums(sparse_matrix)
+# Remove terms that occur less than 50 times
+freq <- subset(freq, freq >= 50)
+# Sort terms by frequency
+freq <- freq[order(freq, decreasing = TRUE)]
+# Get top 25 terms
+freq <- freq[1:25]
+
+# Barplot of frequent terms
+barplot(freq, las = 2, col = rainbow(25), main = "Top 25 Frequent Terms", xlab = "Term", ylab = "Frequency")
+```
+
+## Save sparse_matrix
+```{r}
+saveRDS(sparse_matrix, "processed/sparse_matrix.rds")
+```

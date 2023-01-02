@@ -2,17 +2,24 @@
 A project for a University class, meant for personal use. Written in R for the purpouses of the class. Uses the Drugs Review dataset and perform data cleaning, exploration and apply unsupervised learning and supervised learning techniques to the dataset.
   
 ## Files required:
+---
+
 ```processed/drug_review_cleaned.csv```  
-  
-Get this by running dataset-cleaning.R
+Get this by running dataset-cleaning.R  
+
+---
+
+```processed/sparse_matrix.rds```  
+Get this by running text-preprocessing.rmd  
 
 ---  
 
 ## Order of files:
 1. ```dependencies.R```
 2. ```exploratory-analysis.R```
-3. ```dataset-cleaning.R```
-4. ```text_clustering.Rmd```
+3. ```dataset-cleaning.R```  
+4. ```texpt-preprocessing.rmd```
+5. ```text_clustering.Rmd```
 
 ## File descriptions 
 ```dependencies.R```  
