@@ -12,6 +12,8 @@ library(tm)
 library(Matrix)
 library(plyr)
 library(stats)
+library(ggpubr)
+library(factoextra)
 ```
 
 ## Load Data
@@ -77,8 +79,8 @@ barplot(freq, las = 2, col = rainbow(25), main = "Top 25 Frequent Terms", xlab =
 ## Reduce the dimensionality of sparse_matrix
 * Remove terms that occur less than 10 times
 ```{r}
-# Filter out terms that occur less than 10 times
-sparse_matrix <- sparse_matrix[rowSums(sparse_matrix) >= 10, ]
+# Filter out terms that occur less than 1000 times
+sparse_matrix <- sparse_matrix[rowSums(sparse_matrix) >= 1000, ]
 ```
 
 
@@ -87,6 +89,7 @@ Clustering using dendrogram
 ```{r}
 distance <- dist(scale(sparse_matrix))
 hc <- hclust(distance, method = "ward.D2") # D or D2
+# Display the dendrogram
 plot(hc, hang=-1)
 rect.hclust(hc, k = 3)
 ```
@@ -99,4 +102,9 @@ set.seed(0)
 k <- 3
 kmeans_model <- kmeans(t_sparse, k)
 
+# Display the cluster centers
+kmeans_model$centers
+
+# Display the cluster membership
+kmeans_model$cluster
 ```
