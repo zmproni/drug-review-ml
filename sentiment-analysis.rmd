@@ -34,7 +34,7 @@ drug_review <- read.csv("processed/drug_review_cleaned.csv")
 dim(drug_review)
 ```
 
-## Vader Sentiment Analysis
+# Vader Sentiment Extraction
 Valence Aware Dictionary and sEntiment Reasoner (VADER)
 Created by C.J. Hutto and Eric Gilbert at the University of Alabama at Birmingham. VADER 
 is a lexicon and rule-based sentiment analysis tool that is specifically attuned to sentiments 
