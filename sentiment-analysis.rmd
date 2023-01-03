@@ -25,11 +25,13 @@ negative a word is, or a combination of both.
 ```{r}  
 library(tidyverse)
 library(vader)
+library(parallel)
 ```
 
 ```{r}  
 # Load the data
 drug_review <- read.csv("processed/drug_review_cleaned.csv")
+dim(drug_review)
 ```
 
 ## Vader Sentiment Analysis
@@ -56,6 +58,63 @@ result <- get_vader(sample_review, incl_nt = FALSE, neu_set = TRUE, rm_qm = TRUE
 print(result[-1])
 ```
 
+## Estimating runtime 
+Sentiment analysis is computationally intensive, and can take a long time to run.
+The following code estimates the time it takes to run the function on the entire dataset.
+The function is run on a sample of the dataset, and the time it takes to run the function is: 6398 seconds. 
 ```{r}
+# Estimate the time it takes to run the function
+sample_size <- 100
+sample <- drug_review[1:sample_size, ]
 
+start <- Sys.time()
+sample_vader <- vader_df(sample$review, rm_qm = TRUE)
+end <- Sys.time()
+result <- (end - start) * (dim(drug_review)[1] / sample_size)
+
+sprintf("Estimated time to run the function: %s", result)
 ```
+
+6398 seconds is 1hr 46min. Too long for confort. 
+In an effort to reduce the time it takes to run the function, parallel computing is used.
+
+```{r}
+cores <- detectCores()
+cl <- makeCluster(cores)
+
+start <- Sys.time()
+sample_vader <- parLapply(cl, sample$review, get_vader)
+end <- Sys.time()
+
+stopCluster(cl)
+
+result <- (end - start) * (dim(drug_review)[1] / sample_size)
+sprintf("Estimated time to run the function: %s", result)
+```
+
+## Parallel computing 
+With parallel computing we can reduce the time it takes to run 
+the function to an estimate of 1,359 seconds; aka 22 minutes.
+
+```{r}
+cores <- detectCores()
+cl <- makeCluster(cores)
+
+vader <- parLapply(cl, drug_review$review, get_vader)
+
+stopCluster(cl)
+```
+
+```{r}
+# Convert the list to a dataframe
+vader_df <- do.call(rbind, vader)
+vader_df <- as.data.frame(vader_df)
+vader_df <- vader_df[, -1]
+
+# Print first 5 rows
+head(vader_df)
+
+# Save the dataframe
+write.csv(vader_df, "processed/vader_df.csv")
+```
+
