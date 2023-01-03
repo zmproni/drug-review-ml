@@ -62,7 +62,7 @@ print(result[-1])
 Sentiment analysis is computationally intensive, and can take a long time to run.
 The following code estimates the time it takes to run the function on the entire dataset.
 The function is run on a sample of the dataset, and the time it takes to run the function is: 6398 seconds. 
-```{r}
+```{r, eval=FALSE}
 # Estimate the time it takes to run the function
 sample_size <- 100
 sample <- drug_review[1:sample_size, ]
@@ -78,7 +78,7 @@ sprintf("Estimated time to run the function: %s", result)
 6398 seconds is 1hr 46min. Too long for confort. 
 In an effort to reduce the time it takes to run the function, parallel computing is used.
 
-```{r}
+```{r, eval=FALSE}
 cores <- detectCores()
 cl <- makeCluster(cores)
 
@@ -96,7 +96,7 @@ sprintf("Estimated time to run the function: %s", result)
 With parallel computing we can reduce the time it takes to run 
 the function to an estimate of 1,359 seconds; aka 22 minutes.
 
-```{r}
+```{r, eval=FALSE}
 cores <- detectCores()
 cl <- makeCluster(cores)
 
@@ -105,7 +105,7 @@ vader <- parLapply(cl, drug_review$review, get_vader)
 stopCluster(cl)
 ```
 
-```{r}
+```{r, eval=FALSE}
 # Convert the list to a dataframe
 vader_df <- do.call(rbind, vader)
 vader_df <- as.data.frame(vader_df)
@@ -115,6 +115,6 @@ vader_df <- vader_df[, -1]
 head(vader_df)
 
 # Save the dataframe
-write.csv(vader_df, "processed/vader_df.csv")
+saveRDS(vader_df, "processed/vader_df.rds")
 ```
 
