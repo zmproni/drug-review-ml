@@ -1,3 +1,4 @@
+```{r}
 # 1st Step of the project: Preliminary data exploration
 library(tidyverse)
 library(plyr)
@@ -5,14 +6,18 @@ library(ggplot2)
 library(dotenv)
 library(stringr)
 library(tidyr)
+```
 
+```{r}
 # Read in the data
 drugs_review <- read.csv(
   "./dataset/drugs_review.csv",
   sep = "\t",
   header = TRUE
 )
+```
 
+```{r}
 # Preliminary data exploration
 
 # Print columns in dataset
@@ -93,3 +98,8 @@ expression <- "(&.{4};)"
 text <- paste(drugs_review$review, collapse = ". ")
 matches <- str_extract_all(text, expression)
 unique(unlist(matches))
+```
+
+```{r}
+
+```
