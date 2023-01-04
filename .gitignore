@@ -1,3 +1,4 @@
 .env
 processed/drug_review_cleaned.csv
 processed/sparse_matrix.rds
+images/*
