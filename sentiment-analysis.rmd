@@ -23,9 +23,11 @@ in different ways, a count of positive and negative words, a number that represe
 negative a word is, or a combination of both. 
 
 ```{r}  
-library(tidyverse)
+library(dplyr)
 library(vader)
 library(parallel)
+library(ggplot2)
+library(corrplot)
 ```
 
 ```{r}  
@@ -107,14 +109,93 @@ stopCluster(cl)
 
 ```{r, eval=FALSE}
 # Convert the list to a dataframe
-vader_df <- do.call(rbind, vader)
-vader_df <- as.data.frame(vader_df)
-vader_df <- vader_df[, -1]
+vdf <- do.call(rbind, vader)
+vdf <- as.data.frame(vdf)
+vdf <- vdf[, -1]
 
 # Print first 5 rows
-head(vader_df)
+head(vdf)
 
 # Save the dataframe
-saveRDS(vader_df, "processed/vader_df.rds")
+saveRDS(vdf, "processed/vdf.rds")
+```
+
+
+```{r}
+vdf <- readRDS("processed/vdf.rds")
+
+# Cast all columns to numeric
+vdf <- vdf %>% dplyr::mutate_if(is.character, as.numeric)
+head(vdf)
+
+# Check for NA values
+sum(is.na(vdf))
+
+colnames(drug_review)
+df <- drug_review[, c("rating", "drugName", "condition")]
+df <- merge(df, vdf, by = "row.names")[, -1]
+
+# Drop NA rows
+df <- df[complete.cases(df), ]
+
+head(df)
+```
+
+```{r}
+ratings <- df %>%
+  dplyr::group_by(rating) %>%
+  dplyr::summarise(
+    compound = mean(compound),
+    neg = mean(neg),
+    neu = mean(neu),
+    pos = mean(pos)
+  )
+
+View(ratings)
+```
+
+```{r}
+# Graph ratings to compound
+vad_plt <- ggplot(ratings, aes(x = rating, y = compound)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Average Compound Score by Rating",
+    x = "Rating",
+    y = "Compound"
+  )
+print(vad_plt)
+```
+
+```{r}
+cm <- cor(df[, c("rating", "neg", "neu", "pos", "compound")])
+
+png_corr_matrix <- function(df, file_name, title, height = 650, width = 575) {
+  png(height = height, width = width, file = file_name)
+  corrplot(df,
+    title = " ",
+    method = "color",
+    type = "upper",
+    addCoef.col = "black",
+    tl.col = "black",
+    diag = FALSE,
+    sig.level = 0.01,
+    insig = "blank",
+    tl.srt = 45,
+  )
+  mtext(title, at = 3.5, line = -1, cex = 2)
+  dev.off()
+}
+
+png_corr_matrix(
+  df = cm, 
+  file_name = "images/vdr_corr_matrix.png",
+  title = "VADER Correlation Matrix"
+)
+```
+
+```{r}
+
+dev.off()
 ```
 
