@@ -183,19 +183,19 @@ png_corr_matrix <- function(df, file_name, title, height = 650, width = 575) {
     insig = "blank",
     tl.srt = 45,
   )
-  mtext(title, at = 3.5, line = -1, cex = 2)
+  mtext(title, at = 3.5, line = 0, cex = 2)
   dev.off()
 }
 
 png_corr_matrix(
-  df = cm, 
+  df = cm,
   file_name = "images/vdr_corr_matrix.png",
   title = "VADER Correlation Matrix"
 )
 ```
 
 ```{r}
-
-dev.off()
+df <- merge(drug_review, vdf, by = "row.names")[, -1]
+head(df)
 ```
 
