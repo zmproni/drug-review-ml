@@ -105,7 +105,6 @@ unique(unlist(matches))
 group <- drugs_review %>%
   group_by(condition) %>%
   summarise(n = n()) %>%
-  arrange(desc(n)) %>%
   top_n(10, n)
 
 # Plot top 10 conditions with the most reviews as a bar graph
@@ -164,5 +163,33 @@ ggsave(
 ```
 
 ```{r}
-saveRDS(bc_reviews, "processed/bc_reviews.rds")
+# Seperate ratings into 3 categories (positive, neutral, negative):
+# where positive is 9-10, neutral is 5-8, and negative is 1-4
+drugs_review$rating_type <- ifelse(
+  drugs_review$rating %in% c(9, 10), "positive",
+    ifelse(
+      drugs_review$rating %in% c(5, 6, 7, 8), "neutral",
+        ifelse(
+          drugs_review$rating %in% c(1, 2, 3, 4), "negative", NA)))
+```
+
+```{r}
+# Plot the number of reviews for each rating type
+ggplot(drugs_review, aes(x = rating_type)) +
+  geom_bar() +
+  labs(
+    title = "Reviews by Rating Type",
+    x = "Rating Type",
+    y = "Number of reviews"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5)
+  )
+
+ggsave(
+  "images/rating_type_frequency.png",
+  width = 5,
+  height = 4,
+  dpi = 600,
+)
 ```

@@ -57,6 +57,12 @@ lapply(cleaned, function(x) {
   sum(x == "")
 })
 
+# Add a new column for the rating type (Target variable)
+# Seperate ratings into 3 categories (positive, neutral, negative):
+# where positive is 9-10, neutral is 5-8, and negative is 1-4
+cleaned$rating_type <- ifelse(cleaned$rating >= 9, "positive",
+  ifelse(cleaned$rating >= 5, "neutral", "negative"))
+
 # Check for span values
 dim(cleaned[str_detect(cleaned$condition, "span>"), ])
 

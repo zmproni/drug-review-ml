@@ -10,9 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Introduction
 A comparison in rating prediction accuracy based on Lexicon based sentiment analysis.
 The following sentiment analysis methodolgies are used: 
-* AFINN
-* bing
-* nrc
 * VADER
 
 ## How do lexicon based sentiment analysis work?
@@ -33,6 +30,7 @@ library(corrplot)
 ```{r}  
 # Load the data
 drug_review <- read.csv("processed/drug_review_cleaned.csv")
+# Only birth control reviews
 dim(drug_review)
 ```
 
@@ -105,9 +103,7 @@ cl <- makeCluster(cores)
 vader <- parLapply(cl, drug_review$review, get_vader)
 
 stopCluster(cl)
-```
 
-```{r, eval=FALSE}
 # Convert the list to a dataframe
 vdf <- do.call(rbind, vader)
 vdf <- as.data.frame(vdf)
@@ -156,7 +152,7 @@ View(ratings)
 
 ```{r}
 # Graph ratings to compound
-vad_plt <- ggplot(ratings, aes(x = rating, y = compound)) +
+ggplot(ratings, aes(x = rating, y = compound)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(
@@ -164,8 +160,10 @@ vad_plt <- ggplot(ratings, aes(x = rating, y = compound)) +
     x = "Rating",
     y = "Compound"
   )
-print(vad_plt)
+
+ggsave("images/rating_compound.png", width = 5, height = 3, dpi = 300)
 ```
+
 
 ```{r}
 cm <- cor(df[, c("rating", "neg", "neu", "pos", "compound")])
@@ -193,9 +191,5 @@ png_corr_matrix(
   title = "VADER Correlation Matrix"
 )
 ```
-
 ```{r}
-df <- merge(drug_review, vdf, by = "row.names")[, -1]
-head(df)
 ```
-
