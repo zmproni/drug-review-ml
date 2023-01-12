@@ -7,18 +7,6 @@ title: "Sentiment Analysis - Exploration"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
-A comparison in rating prediction accuracy based on Lexicon based sentiment analysis.
-The following sentiment analysis methodolgies are used: 
-* VADER
-
-## How do lexicon based sentiment analysis work?
-The key to understanding how lexicon based sentiment analysis (SA) works is in the word lexicon.
-A lexicon refers to a dictionary of words and their definition, in the context of SA 
-it is a dictionary of words and their sentiment. Various SA methods explain the sentiment's polarity 
-in different ways, a count of positive and negative words, a number that represents how positive or
-negative a word is, or a combination of both. 
-
 ```{r}  
 library(dplyr)
 library(vader)
@@ -27,9 +15,53 @@ library(ggplot2)
 library(corrplot)
 ```
 
+## Introduction
+A comparison in rating prediction accuracy based on Lexicon based sentiment analysis.
+The following sentiment analysis methodolgies are used: 
+* VADER
+
+# Grammar Value Extraction
+## Load data
+```{r}
+# Load data
+drugs_review <- read.csv('processed/drug_review_cleaned.csv', stringsAsFactors = FALSE, na.strings = c("NA", ""), encoding = "UTF-8") 
+review <- drugs_review$review
+df <- drugs_review[, c("rating_type", 'review', "drugName", "condition")]
+```
+
+```{r}
+# get word count for each review
+df$word_count <- review %>% str_count(" ") + 1
+# get exclamation count for each review
+df$exclamation_count <- review %>% str_count("!")
+# get question mark count for each review
+df$question_mark_count <- review %>% str_count("\\?")
+# get sentence count for each review
+df$sentence_count <- review %>% str_count("\\.")
+# get average word length for each review
+df$avg_word_length <- review %>% str_length() / df$word_count
+# get average sentence length for each review
+df$avg_sentence_length <- df$word_count / df$sentence_count
+
+```
+
+```{r}
+# Show df
+head(df)
+write.csv(df, file = "processed/drug_reviews_ge.csv",FALSE, quote = TRUE, row.names = FALSE )
+```
+
+## How do lexicon based sentiment analysis work?
+The key to understanding how lexicon based sentiment analysis (SA) works is in the word lexicon.
+A lexicon refers to a dictionary of words and their definition, in the context of SA 
+it is a dictionary of words and their sentiment. Various SA methods explain the sentiment's polarity 
+in different ways, a count of positive and negative words, a number that represents how positive or
+negative a word is, or a combination of both. 
+
+
 ```{r}  
 # Load the data
-drug_review <- read.csv("processed/drug_review_cleaned.csv")
+drug_review <- read.csv("processed/drug_reviews_ge.csv")
 # Only birth control reviews
 dim(drug_review)
 ```
@@ -41,8 +73,8 @@ is a lexicon and rule-based sentiment analysis tool that is specifically attuned
 expressed in social media. It is fully open-sourced under the MIT License. 
 
 ```{r}
-sample_review <- drug_review$review[5]
-sample_score <- drug_review$rating[5]
+sample_review <- review[5]
+sample_score <- drug_review$rating_type[5]
 sprintf("% s | % s", sample_score, sample_review)
 ```
 
@@ -190,6 +222,4 @@ png_corr_matrix(
   file_name = "images/vdr_corr_matrix.png",
   title = "VADER Correlation Matrix"
 )
-```
-```{r}
 ```

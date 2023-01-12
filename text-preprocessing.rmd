@@ -13,7 +13,7 @@ library(Matrix)
 library(plyr)
 library(stats)
 library(ggpubr)
-library(factoextra)
+# library(factoextra)
 ```
 
 ## Load Data
@@ -79,4 +79,8 @@ barplot(freq, las = 2, col = rainbow(25), main = "Top 25 Frequent Terms", xlab =
 ## Save sparse_matrix
 ```{r}
 saveRDS(sparse_matrix, "processed/sparse_matrix.rds")
+```
+
+```{r}
+
 ```
