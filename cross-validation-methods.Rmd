@@ -1,0 +1,381 @@
+# Load the data
+
+## Function definition and implementation
+```{r}
+# Libraries for data manipulation
+library(caret)
+library(dplyr)
+library(caTools)
+library(DMwR)
+library(e1071)
+library(parallel)
+
+# Function to retrieve the data
+get_data <- function(drug_reviews, sentiment_rds) {
+    # Read the data
+    rds <- readRDS(sentiment_rds)
+    ge <- read.csv(drug_reviews)
+    # Merge the data
+    data <- cbind(ge, rds)
+    # Return the data
+    return(data)
+}
+
+# Function to return data with only 'Birth Control' reviews
+filter_birth_control <- function(data) {
+    data <- data[data$condition == "Birth Control", ]
+    return(data)
+}
+
+# Function to remove columns
+remove_columns <- function(data) {
+    data <- select(data, 1, -2:-4, 5:ncol(data))
+    return(data)
+}
+
+# Function to format the data types
+format_dtypes <- function(data) {
+    data$rating_type <- as.factor(data$rating_type)
+    data <- data %>% mutate_if(is.integer, as.numeric)
+    return(data)
+}
+
+# Function to filter out bad values
+filter_out_bad_vals <- function(data) {
+    bad_rows <- apply(
+        data, 1,
+        function(x) any(is.na(x)) | any(is.nan(x)) | any(is.infinite(x))
+    )
+    clean_df <- data[!bad_rows, ]
+    return(clean_df)
+}
+
+# Function to split the data
+split_data <- function(data, split_ratio = 0.7, stratified = TRUE, seed = -1) {
+    if (seed != -1) {
+        set.seed(seed)
+    }
+
+    # TODO: Generalise target variable
+    if (stratified) {
+        # Split with createDataPartition function
+        indexes <- createDataPartition(
+            data$rating_type,
+            p = split_ratio,
+            list = FALSE,
+            times = 1
+        )
+        train_data <- data[indexes, ]
+        test_data <- data[-indexes, ]
+        return(list(train_data, test_data))
+    }
+
+    # Split randomly
+    indexes <- sample(1:nrow(data), size = 0.8 * nrow(data))
+    train_data <- data[indexes, ]
+    test_data <- data[-indexes, ]
+    return(list(train_data, test_data))
+}
+
+# Function to scale and center the data
+scale_and_center <- function(train_test) {
+    train_data <- train_test[[1]]
+    test_data <- train_test[[2]]
+
+    print(head(train))
+    preprocess <- preProcess(train_data[, -1], method = c("center", "scale"))
+    train[, -1] <- predict(preprocess, train[, -1])
+    test[, -1] <- predict(preprocess, test[, -1])
+    return(list(train_data, test_data))
+}
+
+# Function to perform SMOTE on the data
+smote <- function(train_test, perc_over = 100, k = 5) {
+    train_data <- train_test[[1]]
+    test_data <- train_test[[2]]
+    train_data <- SMOTE(
+        rating_type ~ .,
+        data = train_data,
+        perc.over = perc_over,
+        k = k
+    )
+    return(list(train_data, test_data))
+}
+
+```
+
+# Cross-Validation methods
+- Holdout Cross-Validation
+- K-fold Cross-Validation
+- Stratified K-fold Cross-Validation
+- Repeating K-fold Cross-Validation
+- Leave One Out Cross-Validation
+
+## Function definition and implementation
+
+### Cross validation implementation functions
+imput -> train_test
+- k_fold_cv
+- stratified_k_fold_cv
+- repeating_k_fold_cv
+- leave_one_out_cv
+- holdout_cv
+```{r}
+# Function to perform holdout cross-validation
+holdout_cv <- function(train_test) {
+    control <- trainControl(method = "none")
+    return(control)
+}
+
+# Function to perform unstratifed k-fold cross-validation
+k_fold_cv <- function(train_test, k = 10, seed = -1, parallel = FALSE) {
+    if (seed != -1) {
+        set.seed(seed)
+    }
+    control <- trainControl(
+        method = "cv",
+        number = k,
+        classProbs = FALSE,
+        allowParallel = parallel
+    )
+    return(control)
+}
+
+# Function to perform stratified k-fold cross-validation
+stratified_k_fold_cv <- function(
+    train_test,
+    k = 10,
+    seed = -1,
+    parallel = FALSE
+) {
+    if (seed != -1) {
+        set.seed(seed)
+    }
+    control <- trainControl(
+        method = "cv",
+        number = k,
+        classProbs = TRUE,
+        summaryFunction = twoClassSummary,
+        allowParallel = parallel
+    )
+    return(control)
+}
+
+# Function to perform repeating k-fold cross-validation
+repeating_k_fold_cv <- function(
+    train_test,
+    k = 10,
+    seed = -1,
+    parallel = FALSE
+) {
+    if (seed != -1) {
+        set.seed(seed)
+    }
+    control <- trainControl(
+        method = "repeatedcv",
+        number = k,
+        repeats = 3,
+        classProbs = TRUE,
+        allowParallel = parallel
+    )
+    return(control)
+}
+
+# Function to perform holdout cross-validation
+leave_one_out_cv <- function(train_test, parallel = FALSE) {
+    control <- trainControl(method = "LOOCV", allowParallel = parallel)
+    return(control)
+}
+```
+
+### Model training functions
+imput -> control 
+- train_model
+```{r}
+# Function to train a model with cross validation
+train_model <- function(
+    control,
+    train_test,
+    method = "svmLinear",
+    preProcess = c()
+) {
+    train_data <- train_test[[1]]
+    model <- train(
+        rating_type ~ .,
+        data = train_data,
+        method = method,
+        trControl = control,
+        preProcess = preProcess
+    )
+    return(model)
+}
+```
+
+### Model evaluation functions
+- evaluate_model
+```{r}
+# Function to evaluate the model
+evaluate_model <- function(model, train_test) {
+    test_data <- train_test[[2]]
+    predictions <- predict(model, test_data)
+
+    confusion_matrix <- confusionMatrix(predictions, test_data$rating_type)
+    accuracy <- confusion_matrix$overall[1]
+    precision <- confusion_matrix$byClass[1]
+    recall <- confusion_matrix$byClass[2]
+    f1_score <- 2 * (precision * recall) / (precision + recall)
+
+    return(list(
+        accuracy = accuracy,
+        precision = precision,
+        recall = recall,
+        f1_score = f1_score
+    ))
+}
+```
+
+### Model capturing functions
+- append_results
+```{r}
+# Function to get values from list and append it to a dataframe for plotting
+append_results <- function(list, df, model_name, cv_name) {
+    df <- df %>%
+        add_row(
+            model_name = model_name,
+            cv_name = cv_name,
+            accuracy = list$accuracy,
+            precision = list$precision,
+            recall = list$recall,
+            f1_score = list$f1_score
+        )
+    return(df)
+}
+```
+### Utilities functions
+- generate_result_df
+```{r}
+generate_result_df <- function() {
+    df <- data.frame(
+        model_name = character(),
+        cv_name = character(),
+        accuracy = numeric(),
+        precision = numeric(),
+        recall = numeric(),
+        f1_score = numeric()
+    )
+    return(df)
+}
+```
+
+# Run Tests
+```{r}
+# Load the data and perform some preprocessing
+data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
+    filter_birth_control() %>%
+    remove_columns() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
+
+# Split the data into train and test
+train_test <- data %>% split_data()
+
+# Results dataframe
+results_df <- generate_result_df()
+pre <- c("center", "scale")
+```
+
+```{r}
+# Run tests
+print("Holdout Cross-Validation")
+train_test %>% 
+    holdout_cv() %>%
+    train_model(train_test, preProcess = pre) %>%
+    evaluate_model(train_test) %>%
+    append_results(results_df, "svmLinear", "holdout")
+
+print("K-Fold Cross-Validation")
+train_test %>%
+    k_fold_cv(k = 10) %>%
+    train_model(train_test, preProcess = pre) %>%
+    evaluate_model(train_test) %>%
+    append_results(results_df, "svmLinear", "k_fold")
+
+print("Stratified K-Fold Cross-Validation")
+train_test %>%
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, preProcess = pre) %>%
+    evaluate_model(train_test) %>%
+    append_results(results_df, "svmLinear", "stratified_k_fold")
+
+print("Repeating K-Fold Cross-Validation")
+train_test %>%
+    repeating_k_fold_cv(k = 10) %>%
+    train_model(train_test, preProcess = pre) %>%
+    evaluate_model(train_test) %>%
+    append_results(results_df, "svmLinear", "repeating_k_fold")
+```
+```{r, eval=FALSE}
+print("Leave One Out Cross-Validation")
+train_test %>%
+    leave_one_out_cv() %>%
+    train_model(train_test, preProcess = pre) %>%
+    evaluate_model(train_test) %>%
+    append_results(results_df, "svmLinear", "leave_one_out")
+```
+
+# Plot Results
+```{r}
+# Print the results
+results_df
+```
+
+```{r}
+# Plot the results
+results_df %>%
+    ggplot(aes(x = cv_name, y = accuracy, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(
+        title = "Accuracy of SVM Linear Model",
+        x = "Cross Validation Method",
+        y = "Accuracy"
+    ) +
+    theme_minimal()
+```
+
+```{r}
+results_df %>%
+    ggplot(aes(x = cv_name, y = precision, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(
+        title = "Precision of SVM Linear Model",
+        x = "Cross Validation Method",
+        y = "Precision"
+    ) +
+    theme_minimal()
+```
+
+```{r}
+results_df %>%
+    ggplot(aes(x = cv_name, y = recall, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(
+        title = "Recall of SVM Linear Model",
+        x = "Cross Validation Method",
+        y = "Recall"
+    ) +
+    theme_minimal()
+```
+
+```{r}
+results_df %>%
+    ggplot(aes(x = cv_name, y = f1_score, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(
+        title = "F1 Score of SVM Linear Model",
+        x = "Cross Validation Method",
+        y = "F1 Score"
+    ) +
+    theme_minimal()
+```
+
+# Conclusion
