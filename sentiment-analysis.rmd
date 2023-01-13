@@ -13,6 +13,7 @@ library(vader)
 library(parallel)
 library(ggplot2)
 library(corrplot)
+library(stringr)
 ```
 
 ## Introduction
@@ -40,8 +41,6 @@ df$question_mark_count <- review %>% str_count("\\?")
 df$sentence_count <- review %>% str_count("\\.")
 # get average word length for each review
 df$avg_word_length <- review %>% str_length() / df$word_count
-# get average sentence length for each review
-df$avg_sentence_length <- df$word_count / df$sentence_count
 
 ```
 
@@ -155,6 +154,7 @@ vdf <- readRDS("processed/vdf.rds")
 # Cast all columns to numeric
 vdf <- vdf %>% dplyr::mutate_if(is.character, as.numeric)
 head(vdf)
+saveRDS(vdf, "processed/vdf.rds")
 
 # Check for NA values
 sum(is.na(vdf))
@@ -162,6 +162,7 @@ sum(is.na(vdf))
 colnames(drug_review)
 df <- drug_review[, c("rating", "drugName", "condition")]
 df <- merge(df, vdf, by = "row.names")[, -1]
+
 
 # Drop NA rows
 df <- df[complete.cases(df), ]
