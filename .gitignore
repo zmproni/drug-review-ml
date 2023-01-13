@@ -4,3 +4,4 @@ processed/sparse_matrix.rds
 images/*
 processed/bc_reviews.rds
 processed/drug_reviews_ge.csv
+.vscode/settings.json
