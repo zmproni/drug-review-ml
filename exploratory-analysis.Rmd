@@ -166,11 +166,9 @@ ggsave(
 # Seperate ratings into 3 categories (positive, neutral, negative):
 # where positive is 9-10, neutral is 5-8, and negative is 1-4
 drugs_review$rating_type <- ifelse(
-  drugs_review$rating %in% c(9, 10), "positive",
+  drugs_review$rating %in% c(6, 7, 8, 9, 10), "positive",
     ifelse(
-      drugs_review$rating %in% c(5, 6, 7, 8), "neutral",
-        ifelse(
-          drugs_review$rating %in% c(1, 2, 3, 4), "negative", NA)))
+      drugs_review$rating %in% c(1, 2, 3, 4, 5), "negative", NA))
 ```
 
 ```{r}
@@ -192,4 +190,7 @@ ggsave(
   height = 4,
   dpi = 600,
 )
+```
+
+```{r}
 ```
