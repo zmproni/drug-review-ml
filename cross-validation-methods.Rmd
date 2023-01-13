@@ -1,5 +1,4 @@
 # Load the data
-
 ## Function definition and implementation
 ```{r}
 # Libraries for data manipulation
@@ -51,11 +50,7 @@ filter_out_bad_vals <- function(data) {
 }
 
 # Function to split the data
-split_data <- function(data, split_ratio = 0.7, stratified = TRUE, seed = -1) {
-    if (seed != -1) {
-        set.seed(seed)
-    }
-
+split_data <- function(data, split_ratio = 0.7, stratified = TRUE) {
     # TODO: Generalise target variable
     if (stratified) {
         # Split with createDataPartition function
@@ -71,11 +66,16 @@ split_data <- function(data, split_ratio = 0.7, stratified = TRUE, seed = -1) {
     }
 
     # Split randomly
-    indexes <- sample(1:nrow(data), size = 0.8 * nrow(data))
+    if(is.null(data)) {
+        stop("The dataframe is empty.")
+    }
+    tot_rows <- nrow(data)
+    indexes <- sample(1:tot_rows, size = 0.8 * nrow(data))
     train_data <- data[indexes, ]
     test_data <- data[-indexes, ]
     return(list(train_data, test_data))
 }
+
 
 # Function to scale and center the data
 scale_and_center <- function(train_test) {
@@ -119,19 +119,10 @@ imput -> train_test
 - stratified_k_fold_cv
 - repeating_k_fold_cv
 - leave_one_out_cv
-- holdout_cv
 ```{r}
-# Function to perform holdout cross-validation
-holdout_cv <- function(train_test) {
-    control <- trainControl(method = "none")
-    return(control)
-}
 
 # Function to perform unstratifed k-fold cross-validation
-k_fold_cv <- function(train_test, k = 10, seed = -1, parallel = FALSE) {
-    if (seed != -1) {
-        set.seed(seed)
-    }
+k_fold_cv <- function(train_test, k = 10, parallel = FALSE) {
     control <- trainControl(
         method = "cv",
         number = k,
@@ -142,35 +133,22 @@ k_fold_cv <- function(train_test, k = 10, seed = -1, parallel = FALSE) {
 }
 
 # Function to perform stratified k-fold cross-validation
-stratified_k_fold_cv <- function(
-    train_test,
-    k = 10,
-    seed = -1,
-    parallel = FALSE
-) {
-    if (seed != -1) {
-        set.seed(seed)
-    }
+stratified_k_fold_cv <- function(train_test,
+                                 k = 10,
+                                 parallel = FALSE) {
     control <- trainControl(
         method = "cv",
         number = k,
         classProbs = TRUE,
-        summaryFunction = twoClassSummary,
         allowParallel = parallel
     )
     return(control)
 }
 
 # Function to perform repeating k-fold cross-validation
-repeating_k_fold_cv <- function(
-    train_test,
-    k = 10,
-    seed = -1,
-    parallel = FALSE
-) {
-    if (seed != -1) {
-        set.seed(seed)
-    }
+repeating_k_fold_cv <- function(train_test,
+                                k = 10,
+                                parallel = FALSE) {
     control <- trainControl(
         method = "repeatedcv",
         number = k,
@@ -193,12 +171,10 @@ imput -> control
 - train_model
 ```{r}
 # Function to train a model with cross validation
-train_model <- function(
-    control,
-    train_test,
-    method = "svmLinear",
-    preProcess = c()
-) {
+train_model <- function(control,
+                        train_test,
+                        method = "svmLinear",
+                        preProcess = c()) {
     train_data <- train_test[[1]]
     model <- train(
         rating_type ~ .,
@@ -248,6 +224,7 @@ append_results <- function(list, df, model_name, cv_name) {
 ```
 
 # Run Tests
+## Data Loading
 ```{r}
 # Load the data and perform some preprocessing
 data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
@@ -263,32 +240,28 @@ train_test <- data %>% split_data()
 results_df <- generate_result_df()
 pre <- c("center", "scale")
 ```
-
+## Run cross-validation tests
 ```{r}
-# Run tests
-print("Holdout Cross-Validation")
-result_df <- train_test %>%
-    holdout_cv() %>%
-    train_model(train_test, preProcess = pre) %>%
-    evaluate_model(train_test) %>%
-    append_results(results_df, "svmLinear", "holdout")
+set.seed(0)
+results_df <- NULL
 
+# Run tests
 print("K-Fold Cross-Validation")
-result_df <- train_test %>%
+results_df <- train_test %>%
     k_fold_cv(k = 10) %>%
     train_model(train_test, preProcess = pre) %>%
     evaluate_model(train_test) %>%
     append_results(results_df, "svmLinear", "k_fold")
 
 print("Stratified K-Fold Cross-Validation")
-result_df <- train_test %>%
+results_df <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
     train_model(train_test, preProcess = pre) %>%
     evaluate_model(train_test) %>%
     append_results(results_df, "svmLinear", "stratified_k_fold")
 
 print("Repeating K-Fold Cross-Validation")
-result_df <- train_test %>%
+results_df <- train_test %>%
     repeating_k_fold_cv(k = 10) %>%
     train_model(train_test, preProcess = pre) %>%
     evaluate_model(train_test) %>%
@@ -296,7 +269,6 @@ result_df <- train_test %>%
 
 # Print the results
 results_df
-
 ```
 ```{r, eval=FALSE}
 print("Leave One Out Cross-Validation")
@@ -308,3 +280,46 @@ train_test %>%
 ```
 
 # Plot Results
+```{r}
+# Plot the results
+results_df %>%
+    ggplot(aes(x = cv_name, y = accuracy, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = "Accuracy of different cross-validation methods",
+         x = "Cross-Validation Method",
+         y = "Accuracy") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+results_df %>%
+    ggplot(aes(x = cv_name, y = precision, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = "Precision of different cross-validation methods",
+         x = "Cross-Validation Method",
+         y = "Precision") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+results_df %>%
+    ggplot(aes(x = cv_name, y = recall, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = "Recall of different cross-validation methods",
+         x = "Cross-Validation Method",
+         y = "Recall") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+results_df %>%
+    ggplot(aes(x = cv_name, y = f1_score, fill = model_name)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = "F1 Score of different cross-validation methods",
+         x = "Cross-Validation Method",
+         y = "F1 Score") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+```
