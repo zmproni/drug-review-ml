@@ -56,5 +56,48 @@ dtm <- removeSparseTerms(dtm, 0.8)
 tdm <- TermDocumentMatrix(corpus)
 # Normmalize the term document matrix
 docs_dtm_norm <- t(apply(tdm, 1, function(x) x/sqrt(sum(x^2))))
+```
+
+## 3. Hierarchical Clustering
+
+```{r}
+dist_uni <- dist(dtm, method = "euclidian")
+```
+
+```{r}
 saveRDS(docs_dtm_norm, "processed/docs_dtm_norm.rds")
+dtm <- readRDS("processed/docs_dtm_norm.rds") 
+
+hc_uni = hclust(dist_uni, method="ward.D")
+hc_uni_d = as.dendrogram(hc_uni)
+
+# Finding the optimal number of clusters using Dunn Index
+k = 50
+mat = matrix(0, nrow = k, ncol = 2, byrow = TRUE)
+for (i in 1:k) {
+  members <- cutree(hc_uni, i)
+  dunn_index <- dunn(clusters = members, Data = dist_uni)
+  mat[i,1] <- i
+  mat[i,2] <- dunn_index
+}
+
+# Plot number of clusters vs Dunn Index
+plot(mat, 
+     type = 'b',
+     xlab = "Number of Cluster", 
+     ylab = "Dunn Index",
+     pch = 16,
+     col = "red",
+     main = "Dunn's Index vs Number of clusters",
+     col.main = "dodgerblue")
+points(mat, col = "green")
+```
+
+```{r}
+# Plot hcd
+plot(hc_uni_d, main = "Method Ward",leaflab = "none", col.main = "dodgerblue")
+
+# Add cluster rectangles 
+ncl = 20
+rect.dendrogram(hc_uni_d, k = ncl, border = "blue", xpd = FALSE, lower_rect = 0)
 ```
