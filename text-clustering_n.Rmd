@@ -48,7 +48,7 @@ corpus <- clean_corpus(corpus)
 # Create a document term matrix
 dtm <- DocumentTermMatrix(corpus)
 # Remove sparse terms
-dtm <- removeSparseTerms(dtm, 0.5)
+dtm <- removeSparseTerms(dtm, 0.8)
 ```
 
 ```{r}
@@ -56,5 +56,5 @@ dtm <- removeSparseTerms(dtm, 0.5)
 tdm <- TermDocumentMatrix(corpus)
 # Normmalize the term document matrix
 docs_dtm_norm <- t(apply(tdm, 1, function(x) x/sqrt(sum(x^2))))
-
+saveRDS(docs_dtm_norm, "processed/docs_dtm_norm.rds")
 ```
