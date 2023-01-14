@@ -15,10 +15,13 @@ install.packages("caret", repos = "https://cloud.r-project.org/")
 install.packages("caTools", repos = "https://cloud.r-project.org/")
 install.packages("kernlab", repos = "https://cloud.r-project.org/")
 install.packages("httpgd", repos = "https://cloud.r-project.org/")
+<<<<<<< HEAD
 install.packages("dendextend", repos = "https://cloud.r-project.org/")
 install.packages("cluster", repos = "https://cloud.r-project.org/")
 install.packages("clValid", repos = "https://cloud.r-project.org/")
 
+=======
+>>>>>>> 03cce0fd5f5355a492d5853c67ec13aca2de8820
 remotes::install_github("cran/DMwR")
 
 # Java config issues, cannot be installed on laptop

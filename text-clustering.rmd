@@ -26,9 +26,15 @@ sparse_matrix <- readRDS("processed/sparse_matrix.rds")
 ## Reduce the dimensionality of sparse_matrix
 * Remove terms that occur less than n times
 ```{r}
-# Play around with n
-n <- 2000
-sparse_matrix <- sparse_matrix[rowSums(sparse_matrix) >= n, ]
+# Sort the sparse matrix by term frequency in descending order
+sparse_matrix <- sparse_matrix[order(rowSums(sparse_matrix), decreasing = TRUE), ]
+# Get top 100 words by frequency
+top_100_words <- rownames(sparse_matrix)[1:100]
+# Remove the words day and month
+top_100_words <- top_100_words[!top_100_words %in% c("day", "month", "year", "week", "time", "hour", "minute", "second", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december")]
+
+# Get a sparce matrix with only top 100 words
+sparse_matrix <- sparse_matrix[top_100_words, ]
 ```
 
 
@@ -38,8 +44,11 @@ Clustering using dendrogram
 distance <- dist(scale(sparse_matrix))
 hc <- hclust(distance, method = "ward.D2") # D or D2
 # Display the dendrogram
+
+png("images/dendogram.png", width = 12, height = 6, units = "in", res = 300)
 plot(hc, hang=-1)
-rect.hclust(hc, k = 3)
+rect.hclust(hc, k = 8, border = "red")
+dev.off()
 ```
 
 ## Non-Hierarchical Clustering
