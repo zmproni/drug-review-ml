@@ -1,0 +1,60 @@
+```{r}
+library(tm) # text mining
+library(dendextend) # Dendogram (hierarchical clustering)
+library(cluster) # clustering
+library(clValid) # Calculating Dunn index
+library(dplyr) # Data manipulation
+```
+
+
+```{r}
+# List of days
+days <- c("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+months <- c("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december")
+time_descriptors <- c("morning", "afternoon", "evening", "night", "midnight", "noon", "pm", "am", "day", "week", "month", "year")
+numbers <- c("one", "two", "", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety", "hundred", "thousand", "million", "billion", "trillion", "quadrillion", "quintillion", "sextillion", "septillion", "octillion", "nonillion", "decillion", "undecillion", "duodecillion", "tredecillion", "quattuordecillion", "quindecillion", "sexdecillion", "septendecillion", "octodecillion", "novemdecillion", "vigintillion", "googol", "googolplex")
+```
+
+## 1. Data
+
+```{r}
+# Load data
+data <- read.csv("processed/drug_review_cleaned.csv", header = TRUE)
+
+# Only keep birth control reviews
+data <- data[data$condition == "Birth Control", ]
+
+# Create a corpus
+corpus <- Corpus(VectorSource(data$review))
+
+clean_corpus <- function(corpus) {
+    corpus <- tm_map(corpus, content_transformer(tolower))
+    corpus <- tm_map(corpus, removePunctuation)
+    corpus <- tm_map(corpus, removeNumbers)
+    corpus <- tm_map(corpus, removeWords, stopwords("english"))
+    corpus <- tm_map(corpus, removeWords, days)
+    corpus <- tm_map(corpus, removeWords, months)
+    corpus <- tm_map(corpus, removeWords, time_descriptors)
+    corpus <- tm_map(corpus, removeWords, numbers)
+    corpus <- tm_map(corpus, stripWhitespace)
+    return(corpus)
+}
+
+corpus <- clean_corpus(corpus)
+```
+
+## 2. TF-IDF
+```{r}
+# Create a document term matrix
+dtm <- DocumentTermMatrix(corpus)
+# Remove sparse terms
+dtm <- removeSparseTerms(dtm, 0.5)
+```
+
+```{r}
+# Create a term document matrix
+tdm <- TermDocumentMatrix(corpus)
+# Normmalize the term document matrix
+docs_dtm_norm <- t(apply(tdm, 1, function(x) x/sqrt(sum(x^2))))
+
+```
