@@ -1,3 +1,7 @@
+---
+title: "Cross Validation Selection"
+
+---
 # Load the data
 ## Function definition and implementation
 ```{r}
@@ -288,57 +292,4 @@ train_test %>%
     train_model(train_test, preProcess = pre) %>%
     evaluate_model(train_test) %>%
     append_results(results_df, "svmLinear", "leave_one_out")
-```
-
-# Plot Results
-```{r}
-# Plot the results
-results_df %>%
-    ggplot(aes(x = cv_name, y = accuracy, fill = model_name)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(title = "Accuracy of different cross-validation methods",
-         x = "Cross-Validation Method",
-         y = "Accuracy") +
-    theme(plot.title = element_text(hjust = 0.5))
-```
-
-```{r}
-results_df %>%
-    ggplot(aes(x = cv_name, y = precision, fill = model_name)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(title = "Precision of different cross-validation methods",
-         x = "Cross-Validation Method",
-         y = "Precision") +
-    theme(plot.title = element_text(hjust = 0.5))
-```
-
-```{r}
-results_df %>%
-    ggplot(aes(x = cv_name, y = recall, fill = model_name)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(title = "Recall of different cross-validation methods",
-         x = "Cross-Validation Method",
-         y = "Recall") +
-    theme(plot.title = element_text(hjust = 0.5))
-```
-
-```{r}
-results_df %>%
-    ggplot(aes(x = cv_name, y = f1_score, fill = model_name)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(title = "F1 Score of different cross-validation methods",
-         x = "Cross-Validation Method",
-         y = "F1 Score") +
-    theme(plot.title = element_text(hjust = 0.5))
-```
-
-```{r}
-# calculate positive to negative review_type ratio
-pos_neg_ratio <- data %>%
-    group_by(rating_type) %>%
-    summarise(count = n()) %>%
-    mutate(ratio = count / sum(count)) %>%
-    select(ratio) %>%
-    unlist()
-pos_neg_ratio
 ```
