@@ -146,7 +146,7 @@ stratified_k_fold_cv <- function(train_test,
 }
 
 # Function to perform repeating k-fold cross-validation
-repeating_k_fold_cv <- function(train_test,
+repeated_k_fold_cv <- function(train_test,
                                 k = 10,
                                 parallel = FALSE) {
     control <- trainControl(
@@ -174,7 +174,8 @@ imput -> control
 train_model <- function(control,
                         train_test,
                         method = "svmLinear",
-                        preProcess = c()) {
+                        preProcess = c(),
+                        verbose = FALSE) {
     train_data <- train_test[[1]]
     model <- train(
         rating_type ~ .,
@@ -183,6 +184,9 @@ train_model <- function(control,
         trControl = control,
         preProcess = preProcess
     )
+    if (verbose) {
+        print(model)
+    }
     return(model)
 }
 ```
@@ -237,36 +241,43 @@ data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
 train_test <- data %>% split_data()
 
 # Results dataframe
-results_df <- generate_result_df()
 pre <- c("center", "scale")
 ```
 ## Run cross-validation tests
 ```{r}
 set.seed(0)
+results_df
 results_df <- NULL
 
 # Run tests
+# Time the execution of the tests
+
 print("K-Fold Cross-Validation")
+system.time(
 results_df <- train_test %>%
     k_fold_cv(k = 10) %>%
     train_model(train_test, preProcess = pre) %>%
     evaluate_model(train_test) %>%
     append_results(results_df, "svmLinear", "k_fold")
+)
 
 print("Stratified K-Fold Cross-Validation")
+system.time(
 results_df <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
     train_model(train_test, preProcess = pre) %>%
     evaluate_model(train_test) %>%
     append_results(results_df, "svmLinear", "stratified_k_fold")
+)
 
-print("Repeating K-Fold Cross-Validation")
+print("Repeated K-Fold Cross-Validation")
+system.time(
 results_df <- train_test %>%
-    repeating_k_fold_cv(k = 10) %>%
+    repeated_k_fold_cv(k = 10) %>%
     train_model(train_test, preProcess = pre) %>%
     evaluate_model(train_test) %>%
     append_results(results_df, "svmLinear", "repeating_k_fold")
-
+)
 # Print the results
 results_df
 ```
@@ -322,4 +333,12 @@ results_df %>%
 ```
 
 ```{r}
+# calculate positive to negative review_type ratio
+pos_neg_ratio <- data %>%
+    group_by(rating_type) %>%
+    summarise(count = n()) %>%
+    mutate(ratio = count / sum(count)) %>%
+    select(ratio) %>%
+    unlist()
+pos_neg_ratio
 ```
