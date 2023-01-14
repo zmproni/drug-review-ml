@@ -18,8 +18,6 @@ install.packages("httpgd", repos = "https://cloud.r-project.org/")
 install.packages("dendextend", repos = "https://cloud.r-project.org/")
 install.packages("cluster", repos = "https://cloud.r-project.org/")
 install.packages("clValid", repos = "https://cloud.r-project.org/")
-remotes::install_github("cran/DMwR")
-
-# Java config issues, cannot be installed on laptop
 install.packages("RWeka", repos = "https://cloud.r-project.org/")
 install.packages("rJava", repos = "https://cloud.r-project.org/")
+remotes::install_github("cran/DMwR")
