@@ -98,6 +98,6 @@ points(mat, col = "green")
 plot(hc_uni_d, main = "Method Ward",leaflab = "none", col.main = "dodgerblue")
 
 # Add cluster rectangles 
-ncl = 20
+ncl <- 20
 rect.dendrogram(hc_uni_d, k = ncl, border = "blue", xpd = FALSE, lower_rect = 0)
 ```
