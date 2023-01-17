@@ -16,6 +16,7 @@ the probability of the word occurring in the text given.
 ```{r}
 require(quanteda)
 require(quanteda.textmodels)
+library(quanteda.classifiers)
 require(dplyr)
 require(caret)
 ```
@@ -24,6 +25,9 @@ require(caret)
 ```{r}
 # Check datatype of the data
 df <- read.csv("dataset/drugs_cleaned.csv")
+# Filter only Birth Control 
+df <- df %>% filter(condition == "Birth Control")
+
 
 sample_reviews <- read.csv("dataset/sample_reviews.csv")
 sample_review <- sample_reviews$review[0]
@@ -121,4 +125,10 @@ tab_class
 ```{r}
 # Confusion matrix
 confusionMatrix(tab_class)
+```
+
+## Cross-Validation
+```{r}
+# Cross-validation
+quanteda.classifiers::crossval(nb_model, k = 10, by_class = FALSE)
 ```

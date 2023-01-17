@@ -24,31 +24,3 @@ install.packages("quanteda", repos = "https://cloud.r-project.org/")
 install.packages("quanteda.textmodels", repos = "https://cloud.r-project.org/")
 remotes::install_github("cran/DMwR")
 remotes::install_github("quanteda/quanteda.classifiers")
-
-
-install.packages(
-    c("languageserver", 
-    "tidyverse",
-    "jsonlite",
-    "markdown",
-    "ggpubr",
-    "Matrix",
-    "nloptr",
-    "vader",
-    "plyr",
-    "tm",
-    "dotenv",
-    "e1071",
-    "caret",
-    "caTools",  
-    "kernlab",
-    "httpgd",
-    "dendextend",
-    "cluster",
-    "clValid",
-    "RWeka",
-    "rJava",
-    "quanteda",
-    "quanteda.textmodels"), 
-    repos = "https://cloud.r-project.org/"
-)
