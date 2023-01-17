@@ -1,0 +1,196 @@
+# Lexicon Sentiments Analysis Predictive Performance
+```{r}
+library(caret)
+library(dplyr)
+library(caTools)
+library(DMwR)
+library(e1071)
+library(parallel)
+```
+
+## Function definition
+```{r}
+# Function to retrieve the data
+get_data <- function(drug_reviews, sentiment_rds) {
+    # Read the data
+    rds <- readRDS(sentiment_rds)
+    ge <- read.csv(drug_reviews)
+    # Merge the data
+    data <- cbind(ge, rds)
+    # Return the data
+    return(data)
+}
+
+# Function to return data with only 'Birth Control' reviews
+filter_birth_control <- function(data) {
+    data <- data[data$condition == "Birth Control", ]
+    return(data)
+}
+
+# Function to remove columns
+remove_columns <- function(data) {
+    data <- select(data, 1, -2:-9, 10:ncol(data))
+    return(data)
+}
+
+# Function to format the data types
+format_dtypes <- function(data) {
+    data$rating_type <- as.factor(data$rating_type)
+    data <- data %>% mutate_if(is.integer, as.numeric)
+    return(data)
+}
+
+# Function to filter out bad values
+filter_out_bad_vals <- function(data) {
+    bad_rows <- apply(
+        data, 1,
+        function(x) any(is.na(x)) | any(is.nan(x)) | any(is.infinite(x))
+    )
+    clean_df <- data[!bad_rows, ]
+    return(clean_df)
+}
+
+# Function to split the data
+split_data <- function(data, split_ratio = 0.7, stratified = TRUE) {
+    # TODO: Generalise target variable
+    if (stratified) {
+        # Split with createDataPartition function
+        indexes <- createDataPartition(
+            data$rating_type,
+            p = split_ratio,
+            list = FALSE,
+            times = 1
+        )
+        train_data <- data[indexes, ]
+        test_data <- data[-indexes, ]
+        return(list(train_data, test_data))
+    }
+
+    # Split randomly
+    if(is.null(data)) {
+        stop("The dataframe is empty.")
+    }
+    tot_rows <- nrow(data)
+    indexes <- sample(1:tot_rows, size = 0.8 * nrow(data))
+    train_data <- data[indexes, ]
+    test_data <- data[-indexes, ]
+    return(list(train_data, test_data))
+}
+
+
+# Function to scale and center the data
+scale_and_center <- function(train_test) {
+    train_data <- train_test[[1]]
+    test_data <- train_test[[2]]
+
+    print(head(train))
+    preprocess <- preProcess(train_data[, -1], method = c("center", "scale"))
+    train[, -1] <- predict(preprocess, train[, -1])
+    test[, -1] <- predict(preprocess, test[, -1])
+    return(list(train_data, test_data))
+}
+
+# Function to perform SMOTE on the data
+smote <- function(train_test, perc_over = 100, k = 5) {
+    train_data <- train_test[[1]]
+    test_data <- train_test[[2]]
+    train_data <- SMOTE(
+        rating_type ~ .,
+        data = train_data,
+        perc.over = perc_over,
+        k = k
+    )
+    return(list(train_data, test_data))
+}
+
+# Function to perform stratified k-fold cross-validation
+stratified_k_fold_cv <- function(train_test,
+                                 k = 10,
+                                 parallel = FALSE) {
+    control <- trainControl(
+        method = "cv",
+        number = k,
+        classProbs = TRUE,
+        allowParallel = parallel
+    )
+    return(control)
+}
+
+train_model <- function(control,
+                        train_test,
+                        method = "svmLinear",
+                        preProcess = c(),
+                        verbose = FALSE) {
+    train_data <- train_test[[1]]
+    model <- train(
+        rating_type ~ .,
+        data = train_data,
+        method = method,
+        trControl = control,
+        preProcess = preProcess
+    )
+    if (verbose) {
+        print(model)
+    }
+    return(model)
+}
+
+split_data <- function(data, split_ratio = 0.7, stratified = TRUE) {
+    # TODO: Generalise target variable
+    if (stratified) {
+        # Split with createDataPartition function
+        indexes <- createDataPartition(
+            data$rating_type,
+            p = split_ratio,
+            list = FALSE,
+            times = 1
+        )
+        train_data <- data[indexes, ]
+        test_data <- data[-indexes, ]
+        return(list(train_data, test_data))
+    }
+
+    # Split randomly
+    if(is.null(data)) {
+        stop("The dataframe is empty.")
+    }
+    tot_rows <- nrow(data)
+    indexes <- sample(1:tot_rows, size = 0.8 * nrow(data))
+    train_data <- data[indexes, ]
+    test_data <- data[-indexes, ]
+    return(list(train_data, test_data))
+}
+
+evaluate_model <- function(model, train_test) {
+    test_data <- train_test[[2]]
+    predictions <- predict(model, test_data)
+    confusion_matrix <- confusionMatrix(predictions, test_data$rating_type)
+    return (confusion_matrix) 
+}
+```
+
+## VADER
+```{r}
+# Get the data
+data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
+  filter_birth_control() %>%
+  remove_columns() %>%
+  format_dtypes() %>%
+  filter_out_bad_vals()
+
+train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
+```
+
+```{r}
+# Linear SVM 
+result <- train_test %>%
+  stratified_k_fold_cv(k = 10) %>%
+  train_model(train_test, preProcess =  c("center", "scale")) %>%
+  evaluate_model(train_test)
+
+result_gbm <- train_test %>%
+  stratified_k_fold_cv(k = 10) %>%
+  train_model(train_test, method = "gbm") %>%
+  evaluate_model(train_test)
+  ```
+
