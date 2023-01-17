@@ -1,0 +1,219 @@
+# Dataset cleaning
+## Import libraries 
+```{r}
+library(tidyverse)
+library(stringr)
+library(dplyr)
+library(ggplot2)
+```
+
+## Read Dataset
+```{r}
+df <- read.csv("./dataset/drugs_review.csv", sep = "\t", header = TRUE)
+
+```
+
+## Preliminary data exploration
+```{r}
+# Preliminary data exploration
+
+# Print columns in dataset
+colnames(df)
+
+# Drop column named X
+df <- df[, -1]
+
+# View the first 10 rows of the data
+df[1:10, ]
+
+# Get statistical summary of the data
+t(summary(df))
+
+# Check the data types of the variables
+str(df)
+
+# Check the number of rows and columns
+dim(df)
+# 53766 rows 
+```
+
+## Issue dataset identification
+```{r}
+# Check the number of missing values in each column
+colSums(is.na(df))
+lapply(df, function(x) {
+  sum(x == "")
+})
+# 'condition' has 295 missing values
+
+# Determine why some of the values are missing
+df[df$condition == "", ] %>%
+  group_by(drugName) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+df[df$condition == "", ] %>%
+  group_by(drugName) %>%
+  summarise(n = n()) %>%
+  filter(n == 1)
+
+popular_drug <- "Ethinyl estradiol / norethindrone"
+length(df[
+  df$drugName == popular_drug,
+]$drugName)
+# Missing values don't seem to be related to the drug name
+
+# Span tags in condition column
+length(df[str_detect(df$condition, "span>"), ]$review)
+# 271 Incorrectly entered review values
+# Only 1.05% of the data, insignificant difference
+# Suggested the rows are dropped
+
+# Duplicates
+# Check for duplicates
+dim(df[duplicated(df), ])
+
+# Check for duplicates excluding first columns 
+dim(df[duplicated(df[, 2:6]), ])
+# There are 5326 duplicates
+# Same review for the same drug and condition
+# on the same date as well as the same rating.
+# Suspicious, but not enough to drop the rows
+```
+
+## Cleaning functions
+```{r}  
+# Drop X column if exists
+drop_x <- function(df) {
+  if ("X" %in% colnames(df)) {
+    df <- df[, -1]
+  }
+  return(df)
+}
+
+# Datatype conversion
+convert_datatype <- function(df) {
+  df$rating <- as.numeric(df$rating)
+  df$usefulCount <- as.numeric(df$usefulCount)
+  df$date <- as.Date(df$date, format = "%B %d, %Y")
+  return(df)
+}
+
+# Remove null and empty values
+remove_bad_condition <- function(df) {
+  df <- df[df$condition != "", ]
+  df <- df[!str_detect(df$condition, "span>"), ]
+  return(df)
+}
+
+# Replace special characters
+replace_special_characters <- function(df) {
+  df$review <- str_replace_all(df$review, "&#039;", "'")
+  df$review <- str_replace_all(df$review, "\"", "")
+  df$review <- str_replace_all(df$review, "&amp;", "&")
+  df$review <- str_replace_all(df$review, "&quot;", '"')
+  df$review <- str_replace_all(df$review, "&nbsp;", " ")
+  df$review <- str_replace_all(df$review, "&euro;", "$")
+  df$review <- str_replace_all(df$review, "&bull;", "")
+  return(df)
+}
+
+# Substitute important shortform words
+replace_neg_stopwords <- function(df) {
+  df$review <- str_replace_all(df$review, "won't", "will not")
+  df$review <- str_replace_all(df$review, "can't", "cannot")
+  df$review <- str_replace_all(df$review, "n't", " not")
+  df$review <- str_replace_all(df$review, "'re", " are")
+  df$review <- str_replace_all(df$review, "'s", " is")
+  df$review <- str_replace_all(df$review, "'d", " would")
+  df$review <- str_replace_all(df$review, "'ll", " will")
+  df$review <- str_replace_all(df$review, "'ve", " have")
+  df$review <- str_replace_all(df$review, "'m", " am")
+  return(df)
+}
+
+# Remove html tags
+remove_html_tags <- function(df) {
+  df$review <- df$review %>%
+    str_replace_all("<[^>]*>", "") %>%
+    str_replace_all("\\s+", " ")
+  return(df)
+}
+```
+
+
+## Clean dataset
+```{r}
+df <- read.csv("./dataset/drugs_review.csv", sep = "\t", header = TRUE)
+
+df <- df %>%
+  drop_x() %>%
+  remove_bad_condition() %>%
+  convert_datatype() %>%
+  replace_special_characters() %>%
+  replace_neg_stopwords() %>%
+  remove_html_tags()
+
+df$rating_type <- ifelse(df$rating > 5, "positive", "negative")
+
+# Save cleaned dataset
+write.csv(df, "./dataset/drugs_cleaned.csv", row.names = FALSE)
+```
+
+
+# Data exploration
+```{r}
+```
+
+## Rating distribution
+```{r}
+png("plots/rating_distribution.png", width = 400, height = 600)
+df %>%
+  group_by(rating_type) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x = rating_type, y = count)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Rating distribution", x = "Rating", y = "Count")
+dev.off()
+```
+
+## Rating distribution by condition
+```{r}
+# Get top 10 conditions
+top_10_conditions <- df %>%
+  group_by(condition) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count)) %>%
+  slice(1:10) %>%
+  pull(condition)
+
+# Plot positive ratings against negative ratings for top 10 conditions
+png("plots/rating_distribution_by_condition.png", width = 800, height = 400)
+df %>%
+  filter(condition %in% top_10_conditions) %>%
+  group_by(condition, rating_type) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x = condition, y = count, fill = rating_type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Rating distribution by condition", x = "Condition", y = "Count")
+dev.off()
+```
+
+## Sample random reviews 
+```{r}
+# Sample 10 random reviews text with rating
+sample_reviews <- df %>%
+  sample_n(5) %>%
+  select(rating_type, review) %>%
+  mutate(review = str_wrap(review, width = 100))
+
+# Print sample reviews with rating
+for (i in seq_len(nrow(sample_reviews))) {
+  cat("Rating: ", sample_reviews$rating_type[i], "\n")
+  cat("Review: ", sample_reviews$review[i], "\n\n")
+}
+
+# Save sample reviews
+write.csv(sample_reviews, "./dataset/sample_reviews.csv", row.names = FALSE)
+```
+

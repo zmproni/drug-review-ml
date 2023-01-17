@@ -1,0 +1,124 @@
+# Naive Bayes Classifier
+Naive Bayes is a supervised model that will allow us to 
+classify the texts into the two categories. It is a 
+probabilistic classifier that uses Bayes’ theorem to 
+predict the class of a given text. The theorem states 
+that the probability of an event A occurring given that 
+event B has occurred is equal to the probability of event 
+B occurring given that event A has occurred, multiplied by 
+the probability of event A occurring, divided by the 
+probability of event B occurring. In the context of this 
+project, the probability of a text belonging to a given  
+category given that it contains a given word is equal to 
+the probability of the word occurring in the text given. 
+
+## Imports
+```{r}
+require(quanteda)
+require(quanteda.textmodels)
+require(dplyr)
+require(caret)
+```
+
+## Data
+```{r}
+# Check datatype of the data
+df <- read.csv("dataset/drugs_cleaned.csv")
+
+sample_reviews <- read.csv("dataset/sample_reviews.csv")
+sample_review <- sample_reviews$review[0]
+```
+
+## Preprocessing steps
+1. Tokenization: Breaking the text data into individual words or phrases.
+2. Lowercasing: Converting all text to lowercase to reduce the dimensionality of the data.
+3. Removing Stop words: Removing commonly used words such as "the", "and", "is", etc. which do not provide much information.
+4. Stemming/Lemmatization: Reducing words to their base form (e.g., "running" to "run") to reduce dimensionality.
+5. Removing punctuation and special characters.
+6. Removing numbers
+7. Removing HTML tags and URLs
+8. Creating a bag of words representation of the text data.
+
+```{r}
+to_dfm <- function(s_corpus) {
+    # 1. Tokenization
+    s_tokens <- tokens(s_corpus)
+
+    # 2. Lowercasing
+    s_tokens <- tokens_tolower(s_tokens)
+
+    # 3. Removing Stop words except negations
+    stop_keep <- c("will not", "ok", "neither", "won't", "cannot", "no", "nor", "not")
+    stop_w <- stopwords("english") %>% setdiff(stop_keep)
+    s_tokens <- tokens_remove(s_tokens, stop_w)
+
+    # 4. Stemming
+    stem_tokens <- tokens_wordstem(
+        s_tokens,
+        language = quanteda_options("language_stemmer")
+    )
+
+    # 5. Removing punctuation and special characters
+    stem_tokens <- tokens_remove(stem_tokens, pattern = "[[:punct:]]")
+
+    # 6. Removing numbers
+    stem_tokens <- tokens_remove(stem_tokens, pattern = "[[:digit:]]")
+
+    # 7. Removing HTML tags and URLs
+    stem_tokens <- tokens_remove(stem_tokens, pattern = "<[^>]+>")
+
+    # 8. Creating a bag of words representation of the text data.
+    s_dfm <- dfm(stem_tokens)
+
+    return(s_dfm)
+}
+
+# Create corpus
+gen_corpus <- function(df, text_field) {
+    cor <- corpus(df, text_field = text_field)
+    # Add id to corpus
+    df$id <- seq_len(nrow(df))
+    cor$id <- df$id
+
+    return(cor)
+}
+```
+
+## Format and split data 
+```{r}
+set.seed(123)
+
+# Create corpus
+cor <- gen_corpus(df, "review")
+dfm <- to_dfm(cor)
+
+# Split test and train data
+train_index <- createDataPartition(df$rating_type, p = 0.8, list = FALSE)
+
+# Split test and train data
+train_dfm <- dfm_subset(dfm, id %in% train_index)
+test_dfm <- dfm_subset(dfm, !id %in% train_index)
+```
+
+## Train Model
+```{r}
+# Train model
+nb_model <- textmodel_nb(train_dfm, train_dfm$rating_type)
+summary(nb_model)
+```
+
+## Predict
+```{r}
+# Makes sure all features are present in the test data
+matched_dfm <- dfm_match(test_dfm, features = featnames(train_dfm))
+
+actual_class <- matched_dfm$rating_type
+predicted_class <- predict(nb_model, matched_dfm)
+tab_class <- table(actual_class, predicted_class)
+tab_class
+```
+
+```{r}
+# Confusion matrix
+confusionMatrix(tab_class)
+```
