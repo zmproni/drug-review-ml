@@ -22,5 +22,8 @@ install.packages("RWeka", repos = "https://cloud.r-project.org/")
 install.packages("rJava", repos = "https://cloud.r-project.org/")
 install.packages("quanteda", repos = "https://cloud.r-project.org/")
 install.packages("quanteda.textmodels", repos = "https://cloud.r-project.org/")
+install.packages("sentimentr")
+
+
 remotes::install_github("cran/DMwR")
 remotes::install_github("quanteda/quanteda.classifiers")
