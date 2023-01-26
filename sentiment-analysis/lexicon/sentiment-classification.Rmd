@@ -28,7 +28,7 @@ filter_birth_control <- function(data) {
 }
 
 # Function to remove columns
-remove_columns <- function(data) {
+remove_columns_vader <- function(data) {
     data <- select(data, 1, -2:-9, 10:ncol(data))
     return(data)
 }
@@ -171,10 +171,10 @@ evaluate_model <- function(model, train_test) {
 
 ## VADER
 ```{r}
-# Get the data
+# Get the data VADER
 data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
   filter_birth_control() %>%
-  remove_columns() %>%
+  remove_columns_vader() %>%
   format_dtypes() %>%
   filter_out_bad_vals()
 
@@ -182,15 +182,22 @@ train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 ```
 
 ```{r}
-# Linear SVM 
-result <- train_test %>%
+# VADER
+result.vader.svm <- train_test %>%
   stratified_k_fold_cv(k = 10) %>%
   train_model(train_test, preProcess =  c("center", "scale")) %>%
   evaluate_model(train_test)
 
-result_gbm <- train_test %>%
+result.vader.gbm <- train_test %>%
   stratified_k_fold_cv(k = 10) %>%
   train_model(train_test, method = "gbm") %>%
   evaluate_model(train_test)
+
+# AFINN
+
+# BING
+
+# NRC
+
   ```
 

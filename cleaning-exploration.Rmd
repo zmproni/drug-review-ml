@@ -154,6 +154,7 @@ df <- df %>%
   replace_neg_stopwords() %>%
   remove_html_tags()
 
+# Positive, Negative
 df$rating_type <- ifelse(df$rating > 5, "positive", "negative")
 
 # Save cleaned dataset

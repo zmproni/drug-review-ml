@@ -1,0 +1,53 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sentimentr)
+library(dplyr)
+```
+
+```{r}
+extract_sentiment <- function(text_dataset, method) {
+    # Get estimated runtime
+    sample_size <- 1000
+    sample_dataset <- text_dataset[1:sample_size]
+    start_time <- Sys.time()
+    sentimentr::sentiment_by(sample_dataset, method = method)
+    end_time <- Sys.time()
+
+    print((end_time - start_time) * (length(text_dataset) / sample_size))
+
+    # Extract sentiment
+    sentiment <- sentimentr::sentiment_by(text_dataset, method = method)
+
+    # Drop element_id column
+    sentiment <- sentiment %>%
+        select(-element_id)
+
+    # Return sentiment
+    return(sentiment)
+}
+```
+
+
+```{r}
+# Load data
+df <- read.csv("dataset/drugs_cleaned.csv")
+text <- df$review
+```
+
+```{r}
+# Vector of sentiments to extract
+sentiments <- c("bing", "afinn", "jockers_rinker", "nrc")
+# Extract sentiments and save to file
+for (sentiment in sentiments) {
+    print(sentiment)
+    sentiment <- extract_sentiment(text, sentiment)
+    saveRDS(sentiment, paste0("processed/", sentiment, ".rds"))
+}
+```
+
+```{r}
+```
