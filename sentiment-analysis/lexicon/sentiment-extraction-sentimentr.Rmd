@@ -40,12 +40,12 @@ text <- df$review
 
 ```{r}
 # Vector of sentiments to extract
-sentiments <- c("bing", "afinn", "jockers_rinker", "nrc")
+methods <- c("bing", "afinn", "jockers_rinker", "nrc")
 # Extract sentiments and save to file
-for (sentiment in sentiments) {
-    print(sentiment)
-    sentiment <- extract_sentiment(text, sentiment)
-    saveRDS(sentiment, paste0("processed/", sentiment, ".rds"))
+for (method in methods) {
+    print(method)
+    sentiment <- extract_sentiment(text, method)
+    saveRDS(sentiment, paste0("processed/", method, ".rds"))
 }
 ```
 
