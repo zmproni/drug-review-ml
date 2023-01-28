@@ -74,7 +74,7 @@ split_data <- function(data, split_ratio = 0.7, stratified = TRUE) {
     }
 
     # Split randomly
-    if(is.null(data)) {
+    if (is.null(data)) {
         stop("The dataframe is empty.")
     }
     tot_rows <- nrow(data)
@@ -129,7 +129,6 @@ train_model <- function(control,
                         preProcess = c(),
                         tuneLength = 0,
                         verbose = FALSE) {
-    
     train_data <- train_test[[1]]
     model <- train(
         rating_type ~ .,
@@ -161,7 +160,7 @@ split_data <- function(data, split_ratio = 0.7, stratified = TRUE) {
     }
 
     # Split randomly
-    if(is.null(data)) {
+    if (is.null(data)) {
         stop("The dataframe is empty.")
     }
     tot_rows <- nrow(data)
@@ -184,10 +183,10 @@ evaluate_model <- function(model, train_test) {
 ```{r}
 # Get the data VADER
 data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
-  filter_birth_control() %>%
-  remove_columns_vader() %>%
-  format_dtypes() %>%
-  filter_out_bad_vals()
+    filter_birth_control() %>%
+    remove_columns_vader() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
 
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 ```
@@ -196,25 +195,25 @@ train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 # VADER
 # Get the data VADER
 data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
-  filter_birth_control() %>%
-  remove_columns_vader() %>%
-  format_dtypes() %>%
-  filter_out_bad_vals()
+    filter_birth_control() %>%
+    remove_columns_vader() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
 
 
-# Split 
+# Split
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 
 # Train and evaluate
 result.vader.svm <- train_test %>%
-  stratified_k_fold_cv(k = 10) %>%
-  train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
-  evaluate_model(train_test)
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess = c("center", "scale")) %>%
+    evaluate_model(train_test)
 
 result.vader.gbm <- train_test %>%
-  stratified_k_fold_cv(k = 10) %>%
-  train_model(train_test,verbose = TRUE,  tuneLength = 15, method = "gbm") %>%
-  evaluate_model(train_test)
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, method = "gbm") %>%
+    evaluate_model(train_test)
 
 # result.vader.nb <- train_test %>%
 #   stratified_k_fold_cv(k = 10) %>%
@@ -229,21 +228,21 @@ result.vader.blr <- train_test %>%
 
 
 # AFINN
-# Get data for afinn 
+# Get data for afinn
 data <- get_data("dataset/drugs_cleaned.csv", "processed/afinn.rds") %>%
-  filter_birth_control() %>%
-  remove_columns() %>%
-  format_dtypes() %>%
-  filter_out_bad_vals()
+    filter_birth_control() %>%
+    remove_columns() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
 
 # Split
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 
 # Train and evaluate
 result.afinn.svm <- train_test %>%
-  stratified_k_fold_cv(k = 10) %>%
-  train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
-  evaluate_model(train_test)
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess = c("center", "scale")) %>%
+    evaluate_model(train_test)
 
 result.afinn.gbm <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
@@ -265,24 +264,24 @@ result.afinn.blr <- train_test %>%
 # BING
 # Get data for bing
 data <- get_data("dataset/drugs_cleaned.csv", "processed/bing.rds") %>%
-  filter_birth_control() %>%
-  remove_columns() %>%
-  format_dtypes() %>%
-  filter_out_bad_vals()
+    filter_birth_control() %>%
+    remove_columns() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
 
 # Split
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 
 # Train and evaluate
 result.bing.svm <- train_test %>%
-  stratified_k_fold_cv(k = 10) %>%
-  train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
-  evaluate_model(train_test)
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess = c("center", "scale")) %>%
+    evaluate_model(train_test)
 
 result.bing.svm <- train_test %>%
-  stratified_k_fold_cv(k = 10) %>%
-  train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
-  evaluate_model(train_test)
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess = c("center", "scale")) %>%
+    evaluate_model(train_test)
 
 result.bing.gbm <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
@@ -303,23 +302,23 @@ result.bing.blr <- train_test %>%
 # NRC
 # Get data for nrc
 data <- get_data("dataset/drugs_cleaned.csv", "processed/nrc.rds") %>%
-  filter_birth_control() %>%
-  remove_columns() %>%
-  format_dtypes() %>%
-  filter_out_bad_vals()
+    filter_birth_control() %>%
+    remove_columns() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
 
 # Split
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 
 # Train and evaluate
 result.nrc.svm <- train_test %>%
-  stratified_k_fold_cv(k = 10) %>%
-  train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
-  evaluate_model(train_test)
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess = c("center", "scale")) %>%
+    evaluate_model(train_test)
 
 result.nrc.gbm <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
-    train_model(train_test,  verbose = TRUE, tuneLength = 15, method = "gbm") %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, method = "gbm") %>%
     evaluate_model(train_test)
 
 # result.nrc.nb <- train_test %>%
@@ -335,19 +334,19 @@ result.nrc.blr <- train_test %>%
 # jockers_rinker
 # Get data for jockers_rinker
 data <- get_data("dataset/drugs_cleaned.csv", "processed/jockers_rinker.rds") %>%
-  filter_birth_control() %>%
-  remove_columns() %>%
-  format_dtypes() %>%
-  filter_out_bad_vals()
+    filter_birth_control() %>%
+    remove_columns() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
 
 # Split
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 
 # Train and evaluate
 result.jockers_rinker.svm <- train_test %>%
-  stratified_k_fold_cv(k = 10) %>%
-  train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
-  evaluate_model(train_test)
+    stratified_k_fold_cv(k = 10) %>%
+    train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess = c("center", "scale")) %>%
+    evaluate_model(train_test)
 
 result.jockers_rinker.gbm <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
@@ -363,36 +362,31 @@ result.jockers_rinker.blr <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
     train_model(train_test, verbose = TRUE, tuneLength = 15, method = "LogitBoost", preProcess = c("center", "scale")) %>%
     evaluate_model(train_test)
-
 ```
 
 ```{r}
-# Compile results 
-results <- list (
-  vader.svm = result.vader.svm,
-  vader.gbm = result.vader.gbm,
-  # vader.nb = result.vader.nb,
-  vader.blr = result.vader.blr,
-
-  afinn.svm = result.afinn.svm,
-  afinn.gbm = result.afinn.gbm,
-  # afinn.nb = result.afinn.nb,
-  afinn.blr = result.afinn.blr,
-
-  bing.svm = result.bing.svm,
-  bing.gbm = result.bing.gbm,
-  # bing.nb = result.bing.nb,
-  bing.blr = result.bing.blr,
-
-  nrc.svm = result.nrc.svm,
-  nrc.gbm = result.nrc.gbm,
-  # nrc.nb = result.nrc.nb,
-  nrc.blr = result.nrc.blr,
-
-  jockers_rinker.svm = result.jockers_rinker.svm,
-  jockers_rinker.gbm = result.jockers_rinker.gbm,
-  # jockers_rinker.nb = result.jockers_rinker.nb,
-  jockers_rinker.blr = result.jockers_rinker.blr
+# Compile results
+results <- list(
+    vader.svm = result.vader.svm,
+    vader.gbm = result.vader.gbm,
+    # vader.nb = result.vader.nb,
+    vader.blr = result.vader.blr,
+    afinn.svm = result.afinn.svm,
+    afinn.gbm = result.afinn.gbm,
+    # afinn.nb = result.afinn.nb,
+    afinn.blr = result.afinn.blr,
+    bing.svm = result.bing.svm,
+    bing.gbm = result.bing.gbm,
+    # bing.nb = result.bing.nb,
+    bing.blr = result.bing.blr,
+    nrc.svm = result.nrc.svm,
+    nrc.gbm = result.nrc.gbm,
+    # nrc.nb = result.nrc.nb,
+    nrc.blr = result.nrc.blr,
+    jockers_rinker.svm = result.jockers_rinker.svm,
+    jockers_rinker.gbm = result.jockers_rinker.gbm,
+    # jockers_rinker.nb = result.jockers_rinker.nb,
+    jockers_rinker.blr = result.jockers_rinker.blr
 )
 
 # Save results
@@ -401,11 +395,20 @@ saveRDS(results, "results/lexicon.rds")
 
 ```{r}
 # Read results
-results <- readRDS("resuts/lexicon.rds")
+results <- readRDS("results/lexicon.rds")
 
-# Create a data frame with the results 
+# Create a data frame with the results
 
 length(results)
+```
 
+
+```{r}
+# Print the model for each lexicon
+results[1][1]
+
+```
+
+```{r}
 
 ```
