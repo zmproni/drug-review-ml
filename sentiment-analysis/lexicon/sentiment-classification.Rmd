@@ -135,11 +135,9 @@ train_model <- function(control,
         rating_type ~ .,
         data = train_data,
         method = method,
-        tuneLength = tuneLength,
         trControl = control,
         preProcess = preProcess,
-        metric = "ROC",
-
+        tuneLength = tuneLength
     )
     if (verbose) {
         print(model)
@@ -203,7 +201,6 @@ data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
   format_dtypes() %>%
   filter_out_bad_vals()
 
-# Are any of the rows empty? 
 
 # Split 
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
@@ -228,6 +225,8 @@ result.vader.blr <- train_test %>%
     stratified_k_fold_cv(k = 10) %>%
     train_model(train_test, verbose = TRUE, tuneLength = 15, method = "LogitBoost", preProcess = c("center", "scale")) %>%
     evaluate_model(train_test)
+
+
 
 # AFINN
 # Get data for afinn 
@@ -275,6 +274,11 @@ data <- get_data("dataset/drugs_cleaned.csv", "processed/bing.rds") %>%
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
 
 # Train and evaluate
+result.bing.svm <- train_test %>%
+  stratified_k_fold_cv(k = 10) %>%
+  train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
+  evaluate_model(train_test)
+
 result.bing.svm <- train_test %>%
   stratified_k_fold_cv(k = 10) %>%
   train_model(train_test, verbose = TRUE, tuneLength = 15, preProcess =  c("center", "scale")) %>%
@@ -400,5 +404,8 @@ saveRDS(results, "results/lexicon.rds")
 results <- readRDS("resuts/lexicon.rds")
 
 # Create a data frame with the results 
+
+length(results)
+
 
 ```
