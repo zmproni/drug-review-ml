@@ -149,10 +149,10 @@ df <- read.csv("./dataset/drugs_review.csv", sep = "\t", header = TRUE)
 df <- df %>%
   drop_x() %>%
   remove_bad_condition() %>%
-  convert_datatype() %>%
   replace_special_characters() %>%
-  replace_neg_stopwords() %>%
   remove_html_tags()
+  replace_neg_stopwords() %>%
+  convert_datatype() %>%
 
 # Positive, Negative
 df$rating_type <- ifelse(df$rating > 5, "positive", "negative")
