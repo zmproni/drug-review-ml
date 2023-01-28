@@ -138,7 +138,8 @@ train_model <- function(control,
         tuneLength = tuneLength,
         trControl = control,
         preProcess = preProcess,
-        quiet = TRUE
+        metric = "ROC",
+
     )
     if (verbose) {
         print(model)
