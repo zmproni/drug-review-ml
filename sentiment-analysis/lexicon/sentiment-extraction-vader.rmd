@@ -201,7 +201,7 @@ ggsave("plots/rating_compound.png", width = 5, height = 3, dpi = 300)
 ```{r}
 cm <- cor(df[, c("rating", "neg", "neu", "pos", "compound")])
 
-png_corr_matrix <- function(df, file_name, title, height = 650, width = 575) {
+png_corr_matrix <- function(df, file_name, title, height = 200, width = 200) {
   png(height = height, width = width, file = file_name)
   corrplot(df,
     title = " ",
