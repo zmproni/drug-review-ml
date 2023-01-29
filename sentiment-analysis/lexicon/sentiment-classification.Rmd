@@ -6,8 +6,8 @@ library(caTools)
 library(DMwR)
 library(e1071)
 library(parallel)
+library(stringr)
 library(caTools)
-library(naivebayes)
 ```
 
 ## Function definition
@@ -199,7 +199,6 @@ data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
     remove_columns_vader() %>%
     format_dtypes() %>%
     filter_out_bad_vals()
-
 
 # Split
 train_test <- split_data(data, split_ratio = 0.8, stratified = TRUE)
@@ -405,10 +404,43 @@ length(results)
 
 ```{r}
 # Print the model for each lexicon
-results[1][1]
+results[3][1]
 
 ```
 
 ```{r}
+data <- get_data("processed/drug_reviews_ge.csv", "processed/vdf.rds") %>%
+    filter_birth_control() %>%
+    format_dtypes() %>%
+    filter_out_bad_vals()
 
+# Get a sample of 5 reviews and their sentiment
+sample <- data %>%
+    select(review, compound, rating_type) %>%
+    sample_n(5)
+
+# Print the reviews in a legible format
+sample %>%
+    mutate(review = str_wrap(review, width = 100)) %>%
+    knitr::kable()
+
+sample$review[1]
+
+
+# Get bar graph of positive to negative sentiment types from data
+# Title: Sentiment Type Frequency
+
+png("plots/rating_distribution_type.png", width = 200, height = 300)
+data %>%
+    count(rating_type) %>%
+    ggplot(aes(x = rating_type, y = n)) +
+    geom_bar(stat = "identity") +
+    labs(title = "Sentiment Types", x = "Sentiment Type", y = "Count") +
+    theme_minimal()
+dev.off()
+
+
+```
+
+```{r}
 ```
