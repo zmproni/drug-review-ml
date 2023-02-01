@@ -47,8 +47,24 @@ for (method in methods) {
     sentiment <- extract_sentiment(text, method)
     saveRDS(sentiment, paste0("processed/", method, ".rds"))
 }
+
+for (method in methods) {
+    # Calculate correlation between sentiment and rating
+    sentiment <- readRDS(paste0("processed/", method, ".rds"))
+    print(head(sentiment))
+
+    df <- read.csv("dataset/drugs_cleaned.csv")
+    # DF keep only Birth Control
+
+    correlation <- cor(sentiment$ave_sentiment, df$rating)
+    print(correlation)
+}
+
+# Merge clean dataset
+df <- read.csv("dataset/drugs_cleaned.csv")
+# DF keep only Birth Control
+df <- df[df$condition == "Birth Control", ]
 ```
 
 ```{r}
-
 ```
