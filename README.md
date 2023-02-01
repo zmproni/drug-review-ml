@@ -1,5 +1,5 @@
 # Drugs Review dataset Data Analysis and ML Project
-A project for a University class, meant for personal use. Written in R for the purpouses of the class. Uses the Drugs Review dataset and perform data cleaning, exploration and apply unsupervised learning and supervised learning techniques to the dataset.
+A project for a University class, meant for personal use. Written in R for the purpouses of the class. Uses the Drugs Review dataset and perform data cleaning, exploration and apply unsupervised learning and supervised learning techniques to the dataset. The project is not actively being worked on anymore. 
   
 ## Files required:
 ---
@@ -16,24 +16,25 @@ Get this by running text-preprocessing.rmd
 
 ## Order of files:
 1. ```dependencies.R```
-2. ```exploratory-analysis.R```
-3. ```dataset-cleaning.R```  
+2. ```cleaning-exploration.R```
+3. ```sentiment-analysis/lexicon/sentiment-extraction-vader.R```  
 4. ```texpt-preprocessing.rmd```
-5. ```text_clustering.rmd```
+5. ```text_clustering/*.rmd```
+6. ```sentiment-analysis/*.rmd```
 
 ## File descriptions 
 ```dependencies.R```  
 Contains some of the libraries required for the project.
 I might have forgotten some, due to creating this file after the project was already started.
 
-```exploratory-analysis.R```  
+```cleaning-exploration.R```  
 Contains some of the exploratory analysis done on the dataset.  
 **TODO**: 
 * Add more visualization and analysis.
-
-```dataset-cleaning.R```  
 Contains the code for cleaning the dataset. The cleaned dataset is saved in the processed folder. Make sure to create a processed folder
 in the root of the project.
+
+```dataset-cleaning.R```  
 
 ```text_clustering.rmd```  
 Contains the code for the text clustering part of the project. 
